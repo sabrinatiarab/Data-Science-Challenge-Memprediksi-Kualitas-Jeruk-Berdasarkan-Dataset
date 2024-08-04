@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Orange Quality Predict</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styling.css') }}" />
+</head>
+<body>
+    <div class="testbox">
+        <form action="/predict" method="POST">
+            <div class="banner">
+                <h1>Orange Quality Predict</h1>
+            </div>
+            <h2 style="text-align: center;">Fill out the following form to predict the orange quality</h2>
+
+            <div class="item">
+                <label for="Size (cm)">Size (cm)</label>
+                <input type="number" id="Size (cm)" name="Size (cm)" step="0.1" min="6" max="10" style="width: 100px; height: 6px" placeholder="Enter Size in cm">
+            </div>
+
+            <div class="item">
+                <label for="Weight (g)">Weight (g)</label>
+                <input type="number" id="Weight (g)" name="Weight (g)" step="1" min="100" max="300" style="width: 100px; height: 6px" placeholder="Enter Weight in g">
+            </div>
+
+            <div class="item">
+                <label for="Brix (Sweetness)">Brix (Sweetness)</label>
+                <input type="number" id="Brix (Sweetness)" name="Brix (Sweetness)" step="0.1" min="5.5" max="16" style="width: 100px; height: 6px" placeholder="Enter Brix (Sweetness)">
+            </div>
+
+            <div class="item">
+                <label for="pH (Acidity)">pH (Acidity)</label>
+                <input type="number" id="pH (Acidity)" name="pH (Acidity)" step="0.1" min="2.8" max="4.4" style="width: 100px; height: 6px" placeholder="Enter pH (Acidity)">
+            </div>
+
+            <div class="item">
+                <label for="Softness (1-5)">Softness (1-5)</label>
+                <input type="number" id="Softness (1-5)" name="Softness (1-5)" step="0.5" min="1" max="5" style="width: 100px; height: 6px" placeholder="Enter Softness (1-5)">
+            </div>
+
+            <div class="item">
+                <label for="HarvestTime (days)">Harvest Time (days)</label>
+                <input type="number" id="HarvestTime (days)" name="HarvestTime (days)" step="1" min="6" max="10" style="width: 100px; height: 6px" placeholder="Enter Harvest Time in days">
+            </div>
+
+            <div class="item">
+                <label for="Ripeness (1-5)">Ripeness (1-5)</label>
+                <input type="number" id="Ripeness (1-5)" name="Ripeness (1-5)" step="0.5" min="1" max="5" style="width: 100px; height: 6px" placeholder="Enter Ripeness (1-5)">
+            </div>
+
+            <div class="item">
+                <label for="Color">Color</label>
+                <select id="Color" name="Color">
+                    <option disabled selected value>-- select an option --</option>
+                    <option value="0">Deep Orange</option>
+                    <option value="0.25">Light Orange</option>
+                    <option value="0.5">Orange-Red</option>
+                    <option value="0.75">Orange</option>
+                    <option value="1">Yellow-Orange</option>
+                </select>
+            </div>
+            
+            <div class="item">
+                <label for="Variety">Variety</label>
+                <select id="Variety" name="Variety">
+                    <option disabled selected value>-- select an option --</option>
+                    <option value="0.95652174">Valencia</option>
+                    <option value="0.56521739">Navel</option>
+                    <option value="0.13043478">Cara Cara</option>
+                    <option value="0.04347826">Blood Orange</option>
+                    <option value="0.26086957">Hamlin</option>
+                    <option value="0.82608696">Tangelo (Hybrid)</option>
+                    <option value="0.52173913">Murcott (Hybrid)</option>
+                    <option value="0.47826087">Moro (Blood)</option>
+                    <option value="0.34782609">Jaffa</option>
+                    <option value="0.17391304">Clementine</option>
+                    <option value="1">Washington Navel</option>
+                    <option value="0.7826087">Star Ruby</option>
+                    <option value="0.86956522">Tangerine</option>
+                    <option value="0">Ambiance</option>
+                    <option value="0.08695652">California Valencia</option>
+                    <option value="0.30434783">Honey Tangerine</option>
+                    <option value="0.65217391">Navel (Late Season)</option>
+                    <option value="0.2173913">Clementine (Seedless)</option>
+                    <option value="0.91304348">Temple</option>
+                    <option value="0.43478261">Minneola (Hybrid)</option>
+                    <option value="0.73913043">Satsuma Mandarin</option>
+                    <option value="0.39130435">Midsweet (Hybrid)</option>
+                    <option value="0.60869565">Navel (Early Season)</option>
+                    <option value="0.69565217">Ortanique (Hybrid)</option>
+                </select>
+            </div>
+
+            <div class="item">
+                <label for="Blemishes (Y/N)">Blemishes (Y/N)</label>
+                <select id="Blemishes (Y/N)" name="Blemishes (Y/N)">
+                    <option disabled selected value>-- select an option --</option>
+                    <option value="0">N</option>
+                    <option value="0.98356539">Y (Minor)</option>
+                    <option value="1">Y (Sunburn)</option>
+                    <option value="0.98783356">Y (Mold Spot)</option>
+                    <option value="0.96359596">Y (Bruise)</option>
+                    <option value="0.99466169">Y (Split Skin)</option>
+                    <option value="0.99747699">Y (Sunburn Patch)</option>
+                    <option value="0.9914815">Y (Scars)</option>
+                    <option value="0.97843731">Y (Minor Insect Damage)</option>
+                    <option value="0.97204112">Y (Bruising)</option>
+                    <option value="0.92917576">N (Minor)</option>
+                    <option value="0.95130148">N (Split Skin)</option>
+                </select>
+            </div>
+
+            <div class="btn-block">
+                <button type="submit">SUBMIT</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
