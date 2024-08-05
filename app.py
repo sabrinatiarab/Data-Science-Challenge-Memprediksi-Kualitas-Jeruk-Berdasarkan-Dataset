@@ -11,6 +11,8 @@ app = Flask(__name__)
 # Load the model
 try:
     model = joblib.load('extra_trees_model.pkl')
+except FileNotFoundError as e:
+    raise RuntimeError(f"Model file not found: {e}")
 except Exception as e:
     raise RuntimeError(f"Failed to load the model: {e}")
 
@@ -90,4 +92,6 @@ if __name__ == "__main__":
         # Handle cases where signal assignment is not possible
         pass
 
-    app.run(debug=True, use_reloader=False, threaded=True)
+    # Change the port if necessary
+    port = 5000
+    app.run(debug=True, use_reloader=False, threaded=True, port=port)
