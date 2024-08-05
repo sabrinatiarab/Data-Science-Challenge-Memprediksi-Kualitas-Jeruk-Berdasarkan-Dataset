@@ -5,6 +5,7 @@ from scipy.stats import boxcox
 from sklearn.preprocessing import MinMaxScaler
 import signal
 import sys
+import os
 
 app = Flask(__name__)
 
@@ -93,5 +94,5 @@ if __name__ == "__main__":
         pass
 
     # Change the port if necessary
-    port = 5001  # Change to an available port
+    port = int(os.environ.get('PORT', 8000))  # Default to port 8000
     app.run(debug=True, use_reloader=False, threaded=True, port=port)
