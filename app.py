@@ -93,9 +93,9 @@ def encode_categorical_data(input_df):
 # Mapping of encoded quality values to bins
 def bin_quality(encoded_quality):
     # Define the bin edges
-    bins = [0, 1, 2, 3, 4, 5, 6, 7]
+    bins = [0, 1, 2, 3, 4, 5, 6, 7, 8]  # Adjusted to 9 bin edges
     # Define the labels
-    labels = [2, 2.5, 3, 3.5, 4, 4.5, 5]  # Updated to match the unique quality values
+    labels = [1, 2, 2.5, 3, 3.5, 4, 4.5, 5]  # 8 labels for 9 edges
     
     # Use pd.cut to bin the encoded quality
     binned_quality = pd.cut([encoded_quality], bins=bins, labels=labels, include_lowest=True)[0]
@@ -110,11 +110,11 @@ st.write("Please input the features for prediction:")
 # Input form
 with st.form(key='predict_form'):
     size = st.number_input('Size (cm)', min_value=6.0, max_value=10.0, step=0.1)
-    weight = st.number_input('Weight (g)', min_value=100.0, max_value=300.0, step=1.0)
+    weight = st.number_input('Weight (g)', min_value=100, max_value=300, step=1)
     brix = st.number_input('Brix (Sweetness)', min_value=5.5, max_value=16.0, step=0.1)
     ph = st.number_input('pH (Acidity)', min_value=2.8, max_value=4.4, step=0.1)
     softness = st.number_input('Softness (1-5)', min_value=1.0, max_value=5.0, step=0.5)
-    harvest_time = st.number_input('Harvest Time (days)', min_value=6.0, max_value=25.0, step=1.0)
+    harvest_time = st.number_input('Harvest Time (days)', min_value=6, max_value=25, step=1)
     ripeness = st.number_input('Ripeness (1-5)', min_value=1.0, max_value=5.0, step=0.5)
     
     color = st.selectbox('Color', ['Deep Orange', 'Light Orange', 'Orange-Red', 'Orange', 'Yellow-Orange'])
