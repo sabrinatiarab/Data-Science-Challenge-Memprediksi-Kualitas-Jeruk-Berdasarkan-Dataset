@@ -3,6 +3,8 @@ import pandas as pd
 import joblib
 from scipy.stats import boxcox
 from sklearn.preprocessing import MinMaxScaler
+import signal
+import sys
 
 app = Flask(__name__)
 
@@ -78,5 +80,14 @@ def predict():
         print("Error:", str(e))  # Print error message for debugging
         return jsonify({"error": f"Prediction error: {str(e)}"}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+def handle_sigterm(*args):
+    sys.exit(0)
+
+if __name__ == "__main__":
+    try:
+        signal.signal(signal.SIGTERM, handle_sigterm)
+    except ValueError:
+        # Handle cases where signal assignment is not possible
+        pass
+
+    app.run(debug=True, use_reloader=False, threaded=True)
