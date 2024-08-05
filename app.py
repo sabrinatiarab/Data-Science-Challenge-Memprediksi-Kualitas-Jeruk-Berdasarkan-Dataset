@@ -93,5 +93,5 @@ if __name__ == "__main__":
         pass
 
     # Change the port if necessary
-    port = 5000
+    port = 5001  # Change to an available port
     app.run(debug=True, use_reloader=False, threaded=True, port=port)
