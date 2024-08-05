@@ -1,14 +1,13 @@
 import streamlit as st
 import pandas as pd
 import joblib
-from scipy.stats import boxcox
 from sklearn.preprocessing import MinMaxScaler
 
 # Load the model
 @st.cache_resource
 def load_model():
     try:
-        model = joblib.load('extra_trees_model.pkl')
+        model = joblib.load('gradient_boost_model.pkl')  # Ensure the filename matches
         return model
     except Exception as e:
         st.error(f"Failed to load the model: {e}")
@@ -18,71 +17,71 @@ model = load_model()
 
 # Preprocessing function
 def preprocess_data(input_df):
-    # Apply Box-Cox transformation to 'Ripeness (1-5)'
-    if 'Ripeness (1-5)' in input_df.columns:
-        input_df['Ripeness (1-5)'] = input_df['Ripeness (1-5)'] + 1e-6
-        input_df['Ripeness (1-5)'] = boxcox(input_df['Ripeness (1-5)'], lmbda=1.534807950678563)
+    try:
+        # Columns to include from Min-Max scaling
+        include_columns = ['Weight (g)']
+        scale_columns = [col for col in input_df.columns if col in include_columns]
 
-    # Columns to exclude from Min-Max scaling
-    exclude_columns = ['Color', 'Variety', 'Blemishes (Y/N)', 'Quality (1-5)']
-    scale_columns = [col for col in input_df.columns if col not in exclude_columns]
+        # Apply Min-Max scaling to selected columns
+        scaler = MinMaxScaler()
+        input_df[scale_columns] = scaler.fit_transform(input_df[scale_columns])
+        
+        return input_df
 
-    # Apply Min-Max scaling to selected columns
-    scaler = MinMaxScaler()
-    input_df[scale_columns] = scaler.fit_transform(input_df[scale_columns])
-    
-    return input_df
+    except Exception as e:
+        st.error(f"Error during preprocessing: {e}")
+        return None
 
-# Encoding function for categorical variables
+# Updated encoding function for categorical variables
 def encode_categorical_data(input_df):
     color_mapping = {
         'Deep Orange': 0,
-        'Light Orange': 0.25,
-        'Orange-Red': 0.5,
-        'Orange': 0.75,
-        'Yellow-Orange': 1
+        'Light Orange': 1,
+        'Orange-Red': 2,
+        'Orange': 3,
+        'Yellow-Orange': 4
     }
     
     variety_mapping = {
-        'Valencia': 0.95652174,
-        'Navel': 0.56521739,
-        'Cara Cara': 0.13043478,
-        'Blood Orange': 0.04347826,
-        'Hamlin': 0.26086957,
-        'Tangelo (Hybrid)': 0.82608696,
-        'Murcott (Hybrid)': 0.52173913,
-        'Moro (Blood)': 0.47826087,
-        'Jaffa': 0.34782609,
-        'Clementine': 0.17391304,
-        'Washington Navel': 1,
-        'Star Ruby': 0.7826087,
-        'Tangerine': 0.86956522,
+        'Valencia': 22,
+        'Navel': 13,
+        'Cara Cara': 3,
+        'Blood Orange': 1,
+        'Hamlin': 6,
+        'Tangelo (Hybrid)': 19,
+        'Murcott (Hybrid)': 12,
+        'Moro (Blood)': 11,
+        'Jaffa': 8,
+        'Clementine': 4,
+        'Washington Navel': 23,
+        'Star Ruby': 18,
+        'Tangerine': 20,
         'Ambiance': 0,
-        'California Valencia': 0.08695652,
-        'Honey Tangerine': 0.30434783,
-        'Navel (Late Season)': 0.65217391,
-        'Clementine (Seedless)': 0.2173913,
-        'Temple': 0.91304348,
-        'Minneola (Hybrid)': 0.43478261,
-        'Satsuma Mandarin': 0.73913043,
-        'Midsweet (Hybrid)': 0.39130435,
-        'Navel (Early Season)': 0.60869565,
-        'Ortanique (Hybrid)': 0.69565217
+        'California Valencia': 2,
+        'Honey Tangerine': 7,
+        'Navel (Late Season)': 15,
+        'Clementine (Seedless)': 5,
+        'Temple': 21,
+        'Minneola (Hybrid)': 10,
+        'Satsuma Mandarin': 17,
+        'Midsweet (Hybrid)': 9,
+        'Navel (Early Season)': 14,
+        'Ortanique (Hybrid)': 16
     }
     
     blemishes_mapping = {
         'N': 0,
-        'Y (Minor)': 0.98356539,
-        'Y (Sunburn)': 1,
-        'Y (Mold Spot)': 0.98783356,
-        'Y (Bruise)': 0.96359596,
-        'Y (Split Skin)': 0.99466169,
-        'Y (Sunburn Patch)': 0.99747699,
-        'Y (Scars)': 0.9914815,
-        'Y (Minor Insect Damage)': 0.97843731,
-        'Y (Bruising)': 0.97204112,
-        'N (Minor)': 0.92917576,
-        'N (Split Skin)': 0.95130148
+        'Y (Minor)': 1,
+        'Y (Sunburn)': 2,
+        'Y (Mold Spot)': 3,
+        'Y (Bruise)': 4,
+        'Y (Split Skin)': 5,
+        'Y (Sunburn Patch)': 6,
+        'Y (Scars)': 7,
+        'Y (Minor Insect Damage)': 8,
+        'Y (Bruising)': 9,
+        'N (Minor)': 10,
+        'N (Split Skin)': 11
     }
 
     input_df['Color'] = input_df['Color'].map(color_mapping)
@@ -90,6 +89,18 @@ def encode_categorical_data(input_df):
     input_df['Blemishes (Y/N)'] = input_df['Blemishes (Y/N)'].map(blemishes_mapping)
     
     return input_df
+
+# Mapping of encoded quality values to bins
+def bin_quality(encoded_quality):
+    # Define the bin edges
+    bins = [0, 1, 2, 3, 4, 5, 6, 7]
+    # Define the labels
+    labels = [2, 2.5, 3, 3.5, 4, 4.5, 5]  # Updated to match the unique quality values
+    
+    # Use pd.cut to bin the encoded quality
+    binned_quality = pd.cut([encoded_quality], bins=bins, labels=labels, include_lowest=True)[0]
+    
+    return binned_quality
 
 # Streamlit interface
 st.title('Orange Quality Prediction')
@@ -117,39 +128,39 @@ with st.form(key='predict_form'):
     ])
     blemishes = st.selectbox('Blemishes (Y/N)', [
         'N', 'Y (Minor)', 'Y (Sunburn)', 'Y (Mold Spot)', 'Y (Bruise)', 
-        'Y (Split Skin)', 'Y (Sunburn Patch)', 'Y (Scars)', 'Y (Minor Insect Damage)', 
-        'Y (Bruising)', 'N (Minor)', 'N (Split Skin)'
+        'Y (Split Skin)', 'Y (Sunburn Patch)', 'Y (Scars)', 
+        'Y (Minor Insect Damage)', 'Y (Bruising)', 'N (Minor)', 
+        'N (Split Skin)'
     ])
     
-    submit_button = st.form_submit_button(label='Predict')
+    submit_button = st.form_submit_button(label='Submit')
 
 if submit_button:
-    try:
-        # Prepare input data
-        input_data = {
-            'Size (cm)': [size],
-            'Weight (g)': [weight],
-            'Brix (Sweetness)': [brix],
-            'pH (Acidity)': [ph],
-            'Softness (1-5)': [softness],
-            'HarvestTime (days)': [harvest_time],
-            'Ripeness (1-5)': [ripeness],
-            'Color': [color],
-            'Variety': [variety],
-            'Blemishes (Y/N)': [blemishes]
-        }
-        
-        input_df = pd.DataFrame.from_dict(input_data)
-
-        # Encode the categorical variables
-        input_df_encoded = encode_categorical_data(input_df)
-
-        # Preprocess the input data
-        input_df_preprocessed = preprocess_data(input_df_encoded)
-
-        # Make the prediction
-        prediction = model.predict(input_df_preprocessed)
-        predicted_kualitas = prediction[0]
-        st.success(f'Predicted Quality (1-5): {predicted_kualitas}')
-    except Exception as e:
-        st.error(f"Prediction error: {str(e)}")
+    # Collect input data
+    input_data = {
+        'Size (cm)': [size],
+        'Weight (g)': [weight],
+        'Brix (Sweetness)': [brix],
+        'pH (Acidity)': [ph],
+        'Softness (1-5)': [softness],
+        'Harvest Time (days)': [harvest_time],  # Ensure column names match
+        'Ripeness (1-5)': [ripeness],
+        'Color': [color],
+        'Variety': [variety],
+        'Blemishes (Y/N)': [blemishes]
+    }
+    
+    input_df = pd.DataFrame(input_data)
+    
+    # Preprocess and encode the data
+    preprocessed_data = preprocess_data(input_df)
+    if preprocessed_data is not None:
+        encoded_data = encode_categorical_data(preprocessed_data)
+        if encoded_data is not None:
+            try:
+                # Predict
+                prediction = model.predict(encoded_data)
+                predicted_quality = bin_quality(prediction[0])
+                st.write(f"The predicted orange quality is: {predicted_quality}")
+            except Exception as e:
+                st.error(f"An error occurred during prediction: {e}")
