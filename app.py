@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 import signal
 import sys
 import os
+import socket
 
 app = Flask(__name__)
 
@@ -86,6 +87,11 @@ def predict():
 def handle_sigterm(*args):
     sys.exit(0)
 
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
+
 if __name__ == "__main__":
     try:
         signal.signal(signal.SIGTERM, handle_sigterm)
@@ -94,5 +100,5 @@ if __name__ == "__main__":
         pass
 
     # Change the port if necessary
-    port = int(os.environ.get('PORT', 8000))  # Default to port 8000
+    port = int(os.environ.get('PORT', find_free_port()))  # Default to a free port
     app.run(debug=True, use_reloader=False, threaded=True, port=port)
