@@ -5,39 +5,36 @@ from scipy.stats import boxcox
 from sklearn.preprocessing import MinMaxScaler
 import signal
 import sys
-import os
-import socket
 import logging
-import time
+
+app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Your app routes and logic here
+
+def handle_sigterm(*args):
+    sys.exit(0)
 
 # Load the model
 try:
-    start_time = time.time()
     model = joblib.load('extra_trees_model.pkl')
-    logger.info(f"Model loaded in {time.time() - start_time:.2f} seconds.")
-except FileNotFoundError as e:
-    logger.error(f"Model file not found: {e}")
-    raise RuntimeError(f"Model file not found: {e}")
+    logger.info("Model loaded successfully.")
 except Exception as e:
     logger.error(f"Failed to load the model: {e}")
     raise RuntimeError(f"Failed to load the model: {e}")
 
 # Preprocessing function
 def preprocess_data(input_df):
-    logger.info("Starting data preprocessing.")
-    logger.debug(f"Original Input DataFrame: {input_df}")  # Debug original data
+    logger.info("Original Input DataFrame: %s", input_df)  # Debug original data
     
     # Apply Box-Cox transformation to 'Ripeness (1-5)'
     if 'Ripeness (1-5)' in input_df.columns:
         input_df['Ripeness (1-5)'] = input_df['Ripeness (1-5)'] + 1e-6
         input_df['Ripeness (1-5)'] = boxcox(input_df['Ripeness (1-5)'], lmbda=1.534807950678563)
-        logger.debug(f"Box-Cox Transformed Ripeness (1-5): {input_df['Ripeness (1-5)']}")  # Debug Box-Cox transformation
+        logger.info("Box-Cox Transformed Ripeness (1-5): %s", input_df['Ripeness (1-5)'])  # Debug Box-Cox transformation
 
     # Columns to exclude from Min-Max scaling
     exclude_columns = ['Color', 'Variety', 'Blemishes (Y/N)', 'Quality (1-5)']
@@ -46,20 +43,20 @@ def preprocess_data(input_df):
     # Apply Min-Max scaling to selected columns
     scaler = MinMaxScaler()
     input_df[scale_columns] = scaler.fit_transform(input_df[scale_columns])
-    logger.debug(f"Scaled DataFrame: {input_df}")  # Debug scaled data
-
-    logger.info("Data preprocessing completed.")
+    logger.info("Scaled DataFrame: %s", input_df)  # Debug scaled data
+    
     return input_df
 
 @app.route('/')
 def index():
+    logger.info("Index page accessed")
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         form_data = request.form.to_dict()
-        logger.info(f"Received form data: {form_data}")
+        logger.info("Received form data: %s", form_data)  # Print form data for debugging
         
         input_data = {}
         for key, value in form_data.items():
@@ -69,7 +66,7 @@ def predict():
                 return jsonify({"error": f"Invalid value for {key}: {value}. Please enter a valid number."}), 400
 
         input_df = pd.DataFrame.from_dict(input_data)
-        logger.debug(f"Input DataFrame: {input_df}")
+        logger.info("Input DataFrame: %s", input_df)  # Print DataFrame for debugging
 
         # Define expected columns
         expected_columns = ['Size (cm)', 'Weight (g)', 'Brix (Sweetness)', 'pH (Acidity)', 'Softness (1-5)', 'HarvestTime (days)', 'Ripeness (1-5)', 'Color', 'Variety', 'Blemishes (Y/N)']
@@ -78,29 +75,23 @@ def predict():
 
         # Preprocess the input data
         input_df_preprocessed = preprocess_data(input_df)
-        logger.debug(f"Preprocessed Input DataFrame: {input_df_preprocessed}")
+        logger.info("Preprocessed Input DataFrame: %s", input_df_preprocessed)  # Print preprocessed DataFrame for debugging
 
         # Make the prediction
-        start_time = time.time()
         prediction = model.predict(input_df_preprocessed)
-        logger.info(f"Prediction made in {time.time() - start_time:.2f} seconds.")
-        logger.debug(f"Raw Prediction: {prediction}")
-
+        logger.info("Raw Prediction: %s", prediction)  # Print raw prediction for debugging
+        
+        # Convert prediction to DataFrame for consistent preprocessing
+        prediction_df = pd.DataFrame({'Quality (1-5)': prediction})
+        
+        # Assuming no need to preprocess output, if needed use similar preprocessing
         predicted_kualitas = prediction[0]
-        logger.info(f"Predicted Kualitas: {predicted_kualitas}")
-
+        logger.info("Predicted Kualitas: %s", predicted_kualitas)  # Print prediction for debugging
+        
         return render_template('predict.html', predicted_kualitas=predicted_kualitas)
     except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
+        logger.error("Prediction error: %s", str(e))  # Print error message for debugging
         return jsonify({"error": f"Prediction error: {str(e)}"}), 500
-
-def handle_sigterm(*args):
-    sys.exit(0)
-
-def find_free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        return s.getsockname()[1]
 
 if __name__ == "__main__":
     try:
@@ -109,6 +100,5 @@ if __name__ == "__main__":
         # Handle cases where signal assignment is not possible
         pass
 
-    port = int(os.environ.get('PORT', find_free_port()))  # Default to a free port
-    logger.info(f"Starting the app on port {port}.")
-    app.run(debug=True, use_reloader=False, threaded=True, port=port)
+    logger.info("Starting the app on port 5000.")
+    app.run(debug=True, use_reloader=False, port=5000, threaded=True)
